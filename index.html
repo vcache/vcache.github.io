@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html>
+    <!-- TODO Actualize stations -->
+    <head>
+        <meta charset="utf-8" /> 
+        <title>Alpha Netherail interactive map</title>
+        <style>
+            * { margin: 0; padding: 0;}
+            body, html { height:100%; }
+            canvas { display: block; }
+            #myCanvas {
+                position:absolute;
+                width:100%;
+                height:100%;
+            }
+        </style>
+    </head>
+    <body>
+        <canvas id="myCanvas"
+                onmousedown="procMouseDown(event)"
+                onmouseup="procMouseUp(event)"
+                onmousemove="procMouseMove(event)">
+            Your browser does not support the HTML5 canvas tag.
+        </canvas>
+
+        <script>
+            /*
+                    N
+                NW     NE
+              W     C     E
+                SW     SE
+                    S
+             */
+            var nodes = {
+                // ID         Common name                       Coords     Label placement       Comments
+                "A00": ["New Spawn Netherhub",                  [710, 1300],    "C",    "Connects to all other Hubs and individual lines"],
+                "A01": ["Caerula",                              [470, 1610],    "E",    "Prismriver, Sigfell Island, others (Rail #2)"],
+                "A02": ["Joodfontein (Walschor)",               [470, 1720],    "SE",   "transfer station to HDC Network (Rail #2)"],
+                "A03": ["Lanno-Condeura",                       [450, 1810],    "E",    "various portals to national subdivisions (Rail #2)"],
+                "A04": ["The Iron Farm",                        [655, 1080],    "E",    "public access (Rail #3)"],
+                "A05": ["Dobrograd",                            [670, 1210],    "E",    "(Rail #3)"],
+                "A06": ["Old Spawn Netherhub",                  [580, 1055],    "E",    "transfer station to Old Spawn Network (Rail #4)"],
+                "A07": ["Big Shit Tower",                       [250, 700],     "E",    "only boat travel to mainland (Rail #5)"],
+                "A08": ["(transfer point)",                     [590, 1680],    "NE",   "no portal station"],
+                "A09": ["Austrian Walls",                       [1030, 1680],   "E",    "(Rail #6)"],
+                "A10": ["Old Witherwood",                       [590, 1830],    "SW",   "transfer station (Rail #6)"],
+               "A10'": ["",                                     [600, 1830],     "",   "transfer station (Rail #6)"],
+                "A11": ["Duchy of WitherWood",                  [810, 1805],    "E",    "(Rail #6)"],
+                "A12": ["(transfer point)",                     [975, 1325],    "S",    "no portal station"],
+                "A13": ["Tersk Bank (Slavia Confederation)",    [975, 1260],    "SE",   "transfer station to NEAR Transports (Rail #8)"],
+                "A14": ["Snow Pines (Calisia)",                 [1170, 1280],   "E",    "transfer station to NEAR Transports (Rail #8)"],
+                "A15": ["West Calisia",                         [1215, 1315],   "E",    "(Rail #8)"],
+                "A16": ["AliCat1's Flower Field",               [1215, 1460],   "E",    "(Rail #8)"],
+                "A17": ["(transfer point)",                     [1215, 1540],   "W",    "no portal station"],
+                "A18": ["Aestland",                             [1270, 1540],   "E",    "overworld portal barely accessible (Rail #8)"],
+                "A19": ["Shogunate of Kanshoku",                [1340, 1740],   "E",    "walkway to New Calis (Rail #8)"],
+                "A20": ["Sitzfleisch",                          [805, 580],     "E",    "(Rail #9)"],
+                "A21": ["Inferno Castle",                       [805, 500],     "E",    "(Rail #9)"],
+                "A22": ["Hochkiesel",                           [725, 1485],    "W",    "(Rail #10)"],
+                "A23": ["Nelson",                               [610, 1500],    "E",    "(Rail #11)"],
+                "A24": ["Pizza Plaza",                          [735, 1800],    "S",    "(Rail #12)"],
+                "A25": ["Novoblagomirsk",                       [767, 1555],    "E",    "no direct portal station; access to walkway (Rail #13)"],
+                "A26": ["Flower Farm",                          [820, 1230],    "E",    "(Rail #16)"],
+                "A27": ["Phiagrica",                            [1010, 830],    "NW",   "(Rail #17)"],
+                "A28": ["BellTower (Mercymnius)",               [600, 1090],    "E",    "(Rail #23)"],
+                "E01": ["Dobrobakanistan",                      [1325, 1590],   "E",    ""],
+                "E02": ["AdamJensen's Place",                   [1500, 1610],   "E",    ""],
+               "N17'": ["",                                     [1450, 1560],    "",   ""],
+                "E03": ["Anhud's Scrapyard",                    [235, 1330],    "E",    "transfer station to NEAR Transprts"],
+                "E04": ["Perdyushino",                          [235, 1135],    "N",    "transfer station to Old Spawn Network"],
+                "H00": ["HDC Netherhub",                        [753, 940],     "C",    "a.k.a. 'Confederation Hub' or 'Wyventon Hub' (Rail #1)"],
+                "H01": ["Højborgen",                            [825, 1150],    "E",    "End Portal Stronghold"],
+                "H02": ["Nova Bydlograd (Breshik)",             [827, 901],     "SE",   "secondary hub"],
+                "H03": ["Mining Facility / Archipalegia",       [1050, 860],    "E",    ""],
+                "H04": ["Hosanna",                              [965, 840],     "S",    ""],
+                "H05": ["Tur-del-Achbad",                       [670, 805],     "N",    ""],
+                "H06": ["Badforest (Badfacia)",                 [890, 1020],    "E",    "transfer station to NEAR Transports"],
+                "H07": ["Midway Fortress",                      [1325, 640],    "N",    "no portal station"],
+                "H08": ["Nether Arena",                         [1390, 305],    "E",    "no portal station"],
+                "H09": ["(switch point)",                       [770, 1645],    "NE",   "no portal station"],
+                "H10": ["Walschor",                             [495, 1690],    "NE",   "transfer station to Alpha Spawn Network"],
+                "H11": ["Ostrow",                               [1220, 1610],   "W",    "industrial line only"],
+                "N00": ["Utgard Station",                       [1125, 1000],   "C",    "portal to Midgard Municipality (Rail #0)"],
+                "N01": ["West Sorra",                           [1020, 1000],   "S",    "switch station"],
+                "N02": ["Badforest (Badfacia)",                 [890, 1000],    "N",    "transfer station to HDC Network"],
+                "N03": ["Aresia",                               [815, 1000],    "N",    "also access to Orcaella portal"],
+                "N04": ["Nouvelle Reims",                       [715, 1000],    "W",    "switch station"],
+                "N05": ["Wyventon Station",                     [715, 940],     "W",    "transfer station to HDC Network"],
+                "N06": ["Skellsborough (Skellie Farms)",        [1125, 1150],   "E",    "nether road to Oppai Islands, Rotten Mansion and Zweiyurten portals"],
+                "N07": ["Aliskander's Place",                   [415, 1280],    "N",    ""],
+                "N08": ["Jungle Island",                        [330, 1280],    "SE",   "switch point to Xpeh Lines"],
+                "N09": ["Anhud's Scrapyard",                    [240, 1280],    "W",    "transfer station to Extension Tracks"],
+                "N10": ["Tollan (Ēxcān Bastet)",                [330, 1600],    "W",    "(subject to unpredictable name changes)"],
+                "N11": ["Tersk Bank (Slavia Confederation)",    [980, 1250],    "N",    "transfer station to Alpha Spawn Network"],
+                "N12": ["Aebinsborg (Eyjan Hvíta)",             [1125, 1250],   "S",    "switch station"],
+                "N13": ["Snow Pines (Calisia)",                 [1175, 1250],   "N",    "transfer station to Alpha Spawn Network"],
+                "N14": ["Zen Pagoda",                           [1290, 1250],   "N",    ""],
+                "N15": ["Explorers' Gate 02",                   [1440, 1250],   "E",    "temporary designation for unsettled area"],
+                "N16": ["Ocean Square",                         [1440, 1420],   "E",    ""],
+                "N17": ["Explorers' Gate 01",                   [1440, 1560],   "NW",   "temporary designation for unsettled area, transfer station to Dobro Tracks"],
+                "N18": ["Hilltop Home",                         [1440, 1820],   "E",    ""],
+                "N19": ["Vaeroyar",                             [1440, 1980],   "E",    ""],
+                "N20": ["Vesperia",                             [1350, 1990],   "W",    ""],
+                "N21": ["Lolifarm & Jailville",                 [1320, 1000],   "N",    "access to two portals"],
+                "N22": ["Explorers' Gate 03",                   [1410, 1000],   "E",    "switch station, temporary designation for unsettled area"],
+                "N23": ["Blahsper Community",                   [1410, 910],    "E",    ""],
+                "N24": ["Explorers' Gate 04",                   [1410, 850],    "E",    "temporary designation for unsettled area"],
+                "N25": ["Nerdy Maps",                           [1410, 750],    "E",    ""],
+                "N26": ["Edge Stretch",                         [1480, 570],    "E",    "access to overworld rail to End of the World"],
+                "N27": ["Alpha Prima",                          [1410, 570],    "N",    "switch station"],
+                "N28": ["Dorville",                             [1280, 570],    "N",    "temporary designation"],
+                "N29": ["Explorers' Gate 06",                   [1240, 570],    "SW",   "temporary designation for unsettled area, transfer station to Old Spawn Network"],
+                "N30": ["Brazil Cooperation",                   [1125, 710],    "N",    ""],
+                "N31": ["New Braziltown",                       [1300, 710],    "E",    ""],
+                "N32": ["East Sorra",                           [1020, 970],    "E",    ""],
+                "N33": ["Nautica",                              [1020, 900],    "E",    ""],
+                "N34": ["Phiagrica",                            [1020, 830],    "E",    "transfer station; access to Main Gate and Tree Gate"],
+                "N35": ["Sponville",                            [1020, 780],    "E",    ""],
+                "N36": ["Barriada",                             [1020, 680],    "E",    ""],
+                "O00": ["Old Spawn Netherhub",                  [547,  1051],   "C",    ""],
+                "O01": ["Desert End Portal",                    [565, 875],     "W",    "two lines to same station, transfer station to Xpeh Lines, no access to surface"],
+               "O01'": ["",                                     [580, 875],     "",     ""],
+                "O02": ["Taushahar",                            [445, 700],     "NE",   "transfer station to Xpeh Lines"],
+               "O02'": ["",                                     [435, 705],     "",     ""],
+                "O03": ["(switch point 'GideonSpire's desert')",[540, 905],     "SW",   "portal disabled"],
+                "O04": ["Adschmann Al-Ilol",                    [610, 875],     "NE",   ""],
+                "O05": ["Mozzarabia",                           [360, 875],     "N",    ""],
+                "O06": ["Barasuishou / Ueban Oblast",           [860, 875],     "NW",   ""],
+                "O07": ["Blaze Farm",                           [1230, 565],    "N",    "transfer station to NEAR Transports, access to Explorers' Gate 06"],
+                "O08": ["CAWrus' place",                        [270, 1000],    "E",    ""],
+                "O09": ["feati's Cathedral",                    [295, 825],     "N",    ""],
+                "O10": ["Chernolesovsk",                        [542, 752],     "S",    "transfer station to Xpeh Lines"],
+               "O10'": ["",                                     [542, 740],     "",     ""],
+                "O11": ["Dusseldorf",                           [520, 745],     "W",    "transfer station"],
+                "O12": ["Small Nether Arena",                   [520, 400],     "E",    "no portal station"],
+                "O13": ["Hinoarashington",                      [505, 1100],    "SE",   "overworld: road to Leninstadt"],
+                "O14": ["Techtopia",                            [295, 1130],    "S",    "transfer station to Extension Tracks"],
+                "O15": ["Elkkuton",                             [600, 940],     "E",    "also access to Tangtown"],
+                "X01": ["Xpeh_wam's Village",                   [750, 705],     "NW",   "designed as future hub, transfer station to HDC Network"],
+               "X01'": ["",                                     [760, 705],     "",     ""],
+                "X02": ["Socier",                               [375, 1705],    "E",    ""],
+                "X03": ["Wamfarm",                              [320, 1740],    "W",    "Xpeh_wam's Prismarine Farm, no surface access"],
+            };
+            var edges = [
+                ["A01", "A02", "A"],
+                ["A02", "A03", "A"],
+                ["A04", "A05", "A"],
+                ["A10", "A08", "A"],
+                ["A08", "A09", "A"],
+                ["A11","A10'", "A", "corner"],
+                ["A12", "A13", "A"],
+                ["A12", "A14", "A"],
+                ["A14", "A15", "A"],
+                ["A15", "A16", "A"],
+                ["A16", "A17", "A"],
+                ["A17", "A18", "A"],
+                ["A17", "A19", "A"],
+                ["A21", "A20", "A"],
+
+                ["A00", "A12", "A"],
+                ["A00", "A25", "A"],
+                ["A00", "A24", "A", "corner"],
+                ["A00", "A22", "A"],
+                ["A00", "A23", "A"],
+                ["A08", "A00", "A", "corner"],
+                ["A01", "A00", "A", "corner"],
+                ["A07", "A00", "A", "corner"],
+                ["A06", "A00", "A", "corner"],
+                ["A00", "N07", "N", "corner"],
+                ["A28", "A00", "A"],
+                ["A00", "A05", "A"],
+                ["A00", "A27", "A", "corner"],
+                ["A00", "N11", "N", "corner"],
+
+                ["A18", "E01", "E"],
+                ["E02", "N17'","E", "corner"],
+                ["E03", "E04", "E"],
+
+                ["N00", "N21", "N"],
+                ["N00", "N06", "N"],
+                ["N01", "N00", "N"],
+                ["N30", "N00", "N"],
+                ["N01", "N32", "N"],
+                ["N32", "N33", "N"],
+                ["N33", "N34", "N"],
+                ["N34", "N35", "N"],
+                ["N35", "N36", "N"],
+                ["N30", "N31", "N"],
+                ["N21", "N22", "N"],
+                ["N22", "N23", "N"],
+                ["N23", "N24", "N"],
+                ["N24", "N25", "N"],
+                ["N25", "N27", "N"],
+                ["N27", "N26", "N"],
+                ["N27", "N28", "N"],
+                ["N28", "N29", "N"],
+                ["N05", "N04", "N"],
+                ["N04", "N03", "N"],
+                ["N03", "N02", "N"],
+                ["N02", "N01", "N"],
+                ["N10", "N08", "N"],
+                ["N08", "O02'","X", "corner"],
+                ["N09", "N08", "N"],
+                ["N08", "N07", "N"],
+                ["N11", "N12", "N"],
+                ["N12", "N13", "N"],
+                ["N13", "N14", "N"],
+                ["N14", "N15", "N"],
+                ["N15", "N16", "N"],
+                ["N16", "N17", "N"],
+                ["N17", "N18", "N"],
+                ["N18", "N19", "N"],
+                ["N19", "N20", "N", "corner"],
+                ["N12", "N06", "N"],
+
+                ["X02", "N10", "X", "corner"],
+                ["X02", "X03", "X", "corner"],
+                ["X03", "A10", "X", "corner"],
+
+                ["H11", "H09", "H", "corner"],
+                ["H09", "H10", "H", "corner"],
+
+                ["H03", "H02", "H"],
+                ["H00", "H06", "H", "corner"],
+
+                ["H09", "H00", "H", "corner"],
+                ["A00", "H00", "A"],
+                ["H00", "H01", "H", "corner"],
+                ["H05", "H00", "H"],
+                ["X01'","H00", "H", "corner"],
+                ["H02", "H00", "H"],
+
+                ["A20", "A00", "A", "corner"],
+                ["A26", "A00", "A", "corner"],
+
+                ["H02", "H04", "H", "corner"],
+
+                ["H08", "H07", "H", "corner"],
+                ["X01'","H07", "H", "corner"],
+
+                ["O12", "O11", "O", "corner"],
+                ["O06", "O07", "O", "corner"],
+                ["O08", "O09", "O", "corner"],
+                ["O06", "O04", "O"],
+                ["O03", "O05", "O"],
+                ["O04", "O03", "O", "corner"],
+                
+                ["O15", "O00", "O"],
+                ["O00", "O13", "O", "corner"],
+                ["O14", "O00", "O", "corner"],
+                ["O08", "O00", "O", "corner"],
+                ["O02", "O00", "O"],
+                ["O03", "O00", "O"],
+                ["O01", "O00", "O", "corner"],
+                ["O01'","A06", "O"],
+              
+                ["O10'","O02'","X", "corner"],
+                ["X01", "O10'","X", "corner"],
+                ["O01", "O10", "A", "corner"],
+                //["O04", "A01'", "O"],
+                //["O10", "O01'", "O", "rectangle", yForRect-side],
+            ];
+            var transfers = [
+                ["O07", "N29"],
+                ["N02", "H06"],
+                ["N13", "A14"],
+                ["N11", "A13"],
+                ["E03", "N09"],
+                ["N02", "H06"],
+                ["A02", "H10"],
+                ["N17", "N17'"],
+                ["A10", "A10'"],
+                ["E04", "O14"],
+                ["O02", "O02'"],
+                ["X01", "X01'"],
+                ["O01", "O01'"],
+                ["N34", "A27"],
+                ["O11", "O10", "O10'"],
+                ["A06", "O00.0"],
+            ];
+            var hubs = {"O00": 25, "A00": 45, "H02": 15, "H00": 25, "N00": 25}; // {"hubname": raduis}
+            var prefixes = {"A": ["Alpha Spawn Network", "#b97a57"],
+                            "E": ["Extension Tracks",    "#7f7f7f"],
+                            "H": ["HDC Network",         "#3f48cc"],
+                            "N": ["NEAR Network",        "#22b14c"],
+                            "O": ["Old Spawn Network",   "#ed1c24"],
+                            "X": ["Xpeh Lines",          "#ff7f27"]};
+
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+            var isDragging = false;
+            var xDragBegin;
+            var yDragBegin;
+            var xOffset = 0;
+            var yOffset = 0;
+            var mapScale = 1;
+            var hoveredNode = null
+            var startNode = null
+            var endNode = null
+            var canvasHeight;
+            var canvasWidth;
+            var frameNum = 0;
+            var transferLines = []
+            var hubsPads = {}
+            var selectedRoute = []
+            var selectedEdges = []
+            var click
+
+            var canvas = document.getElementById("myCanvas");
+
+            function procMouseWheel(e)
+            {
+                var e = window.event || e; // old IE support
+                var delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail)));
+
+                if (delta > 0)
+                {
+                    mapScale += .05;
+                    document.cookie = "spon2007_mapScale=" + mapScale;
+                }
+                else if (delta < 0)
+                {
+                    mapScale -= .05;
+                    document.cookie = "spon2007_mapScale=" + mapScale;
+                }
+            }
+
+            function procMouseDown(e)
+            {
+                isDragging = true
+                xDragBegin = e.clientX;
+                yDragBegin = e.clientY;
+                click = true
+            }
+
+            function procMouseUp(e)
+            {
+                if (isDragging)
+                {
+                    isDragging = false
+                    document.cookie = "spon2007_xOffset=" + xOffset;
+                    document.cookie = "spon2007_yOffset=" + yOffset;
+                }
+
+                pn = pointedNode(e.clientX, e.clientY);
+                if (pn)
+                {
+                    selectedRoute = []
+                    selectedEdges = []
+
+                    if (startNode === null)
+                    {
+                        startNode = pn
+                    }
+                    else if (endNode === null)
+                    {
+                        endNode = pn
+                        procRouteSelected()
+                    }
+                    else
+                    {
+                        startNode = pn
+                        endNode = null
+                    }
+                }
+                else if (click)
+                {
+                    startNode = null
+                    endNode = null
+                    selectedRoute = []
+                    selectedEdges = []
+                    click = false
+                }
+            }
+
+            function procMouseMove(e)
+            {
+                if (isDragging)
+                {
+                    xOffset += e.clientX - xDragBegin;
+                    yOffset += e.clientY - yDragBegin;
+                    xDragBegin = e.clientX;
+                    yDragBegin = e.clientY;
+                    click = false
+                }
+                else
+                {
+                    var newHoveredNode = pointedNode(e.clientX, e.clientY);
+                    if (newHoveredNode != hoveredNode)
+                    {
+                        hoveredNode = newHoveredNode;
+                    }
+                }
+            }
+
+            function procKeyPress(e)
+            {
+                switch(e.keyCode)
+                {
+                    case 27:
+                        xOffset = 0
+                        yOffset = 0
+                        mapScale = 1.0
+                        document.cookie = "spon2007_xOffset=" + xOffset;
+                        document.cookie = "spon2007_yOffset=" + yOffset;
+                        document.cookie = "spon2007_mapScale=" + mapScale;
+                        break;
+                }
+            }
+
+            function procRouteSelected()
+            {
+                selectedRoute = findRoute(startNode, endNode)
+                selectedEdges = []
+                for(var i = 0; i < selectedRoute.length - 1; i++)
+                {
+                    var a = selectedRoute[i]
+                    var b = selectedRoute[i+1]
+
+                    for(var j in edges) // TODO: optimize?
+                    {
+                        var edge = edges[j]
+                        if ((edge[0] === a && edge[1] === b) ||
+                            (edge[0] === b && edge[1] === a))
+                        {
+                            selectedEdges.push(j);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            function pointedNode(x, y)
+            {
+                var modelCoords = screenToModel(x, y);
+                for(var i in nodes)
+                {
+                    var node = nodes[i];
+                    var centerX = node[1][0];
+                    var centerY = node[1][1];
+
+                    var distSq = Math.pow(centerX - modelCoords[0], 2) +
+                                 Math.pow(centerY - modelCoords[1], 2);
+
+                    if (distSq <= 25*25)
+                    {
+                        return i;
+                    }
+                }
+
+                return null;
+            }
+
+            function screenToModel(x, y)
+            {
+                return [(x - xOffset) / mapScale,
+                        (y - yOffset) / mapScale]
+            }
+
+            function getLineEquation(x0, y0, x1, y1)
+            {
+                var ax = (x1 - x0)
+                var ay = (y1 - y0)
+
+                return function(t) {
+                    var x = x0 + ax * t
+                    var y = y0 + ay * t
+                    return [x, y];
+                }
+            }
+
+            function magnitude(x0, y0, x1, y1)
+            {
+                return Math.sqrt(Math.pow(x0 - x1, 2) + Math.pow(y0 - y1, 2))
+            }
+
+            function drawLabel(ctx, text, centerX, centerY, radius, style, placement, margin = 4)
+            {
+                ctx.fillStyle = style;
+                switch(placement)
+                {
+                    case "NW":
+                        ctx.textAlign    = "right"
+                        ctx.textBaseline = "bottom"
+                        ctx.fillText(text,
+                                     centerX - radius - margin,
+                                     centerY - radius - margin)
+                        break;
+
+                    case "W":
+                        ctx.textAlign    = "right"
+                        ctx.textBaseline = "middle"
+                        ctx.fillText(text,
+                                     centerX - radius - margin,
+                                     centerY)
+                        break;
+
+                    case "SW":
+                        ctx.textAlign    = "right"
+                        ctx.textBaseline = "top"
+                        ctx.fillText(text,
+                                     centerX - radius - margin,
+                                     centerY + radius + margin)
+                        break;
+
+                    case "NE":
+                        ctx.textAlign    = "left"
+                        ctx.textBaseline = "bottom"
+                        ctx.fillText(text,
+                                     centerX + radius + margin,
+                                     centerY - radius - margin)
+                        break;
+                    
+                    case "E":
+                        ctx.textAlign    = "left"
+                        ctx.textBaseline = "middle"
+                        ctx.fillText(text,
+                                     centerX + radius + margin,
+                                     centerY)
+                        break;
+
+                    case "SE":
+                        ctx.textAlign    = "left"
+                        ctx.textBaseline = "top"
+                        ctx.fillText(text,
+                                     centerX + radius + margin,
+                                     centerY + radius + margin)
+                        break;
+                    
+                    case "N":
+                        ctx.textAlign    = "center"
+                        ctx.textBaseline = "bottom"
+                        ctx.fillText(text,
+                                     centerX,
+                                     centerY - radius - margin)
+                        break;
+                    
+                    case "S":
+                        ctx.textAlign    = "center"
+                        ctx.textBaseline = "top"
+                        ctx.fillText(text,
+                                     centerX,
+                                     centerY + radius + margin)
+                        break;
+
+                    case "C":
+                        ctx.textAlign    = "center"
+                        ctx.textBaseline = "middle"
+                        ctx.fillText(text,
+                                     centerX,
+                                     centerY)
+                        break;
+                }
+            }
+
+            function repaint()
+            {
+                var ctx = canvas.getContext("2d");
+
+                frameNum++;
+
+                ctx.fillStyle = "black";
+                ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+                ctx.font = "19px verdana";
+
+                ctx.save();
+                
+                ctx.translate(xOffset+.5, yOffset+.5);
+                ctx.scale(mapScale, mapScale);
+
+                ctx.lineWidth = 20;
+                for(var i in transferLines)
+                {
+                    var transferLine = transferLines[i]
+                    var begin = transferLine[0]
+                    var end = transferLine[1]
+
+                    ctx.beginPath();
+                    ctx.moveTo(begin[0], begin[1]);
+                    ctx.lineTo(end[0],   end[1]);
+                    ctx.strokeStyle = "white";
+                    ctx.stroke();
+                }
+
+                // TODO: optimize drawing for same color
+                for(var k in edges)
+                {
+                    var edge = edges[k];
+
+                    var nodeA = nodes[edge[0]]
+                    var nodeB = nodes[edge[1]]
+                    var lineInfo = prefixes[edge[2]]
+
+                    var ax = nodeA[1][0]
+                    var ay = nodeA[1][1]
+                    var bx = nodeB[1][0]
+                    var by = nodeB[1][1]
+
+                    //ctx.shadowBlur = 10;
+                    //ctx.shadowColor = lineInfo[1];
+
+                    ctx.lineWidth = selectedEdges.indexOf(k) !== -1 ? 7 : 2
+
+                    ctx.beginPath();
+                    if ("corner" === edge[3])
+                    {
+                        ctx.moveTo(ax, ay);
+                        ctx.lineTo(ax, by);
+                        ctx.lineTo(bx, by);
+                    }
+                    else
+                    {
+                        ctx.moveTo(ax, ay);
+                        ctx.lineTo(bx, by);
+                    }
+                    ctx.strokeStyle = lineInfo[1];
+                    ctx.stroke();
+                }
+
+                ctx.lineWidth = 1;
+                var blinkingOn = (frameNum % 20 < 10);
+                for(var i in nodes)
+                {
+                    var node = nodes[i];
+                    var centerX = node[1][0];
+                    var centerY = node[1][1];
+                    var lineInfo = prefixes[i[0]]
+
+                    ctx.font = i === hoveredNode || i === startNode || i === endNode ? "bold 16px monospace"
+                                                                                     : "16px monospace";
+
+                    var nodeInRoute = (selectedRoute.indexOf(i) !== -1)
+                    var paintLabel = selectedRoute.length === 0 || nodeInRoute
+
+                    if (i in hubs)
+                    {
+                        // Is hub
+                        var radius = hubs[i]
+                        
+                        ctx.beginPath();
+                        ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+                        ctx.fillStyle = (i === startNode || i === endNode || nodeInRoute) && blinkingOn ?  lineInfo[1] : "white";
+                        ctx.fill();
+
+                        ctx.beginPath();
+                        ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+                        ctx.strokeStyle = lineInfo[1];
+                        ctx.stroke();
+
+                        drawLabel(ctx, i, centerX, centerY, radius, lineInfo[1], node[2])
+                    }
+                    else
+                    {
+                        // Rugular node
+                        var radius = 4;
+                        var radFactor = (i === startNode || i === endNode || nodeInRoute) && blinkingOn ? 2 : 1
+
+                        ctx.fillStyle = lineInfo[1];
+                        ctx.beginPath();
+                        ctx.arc(centerX, centerY, radius * radFactor, 0, 2 * Math.PI);
+                        ctx.fill();
+
+                        if (paintLabel)
+                        {
+                            drawLabel(ctx, i, centerX, centerY, radius, lineInfo[1], node[2]);
+                        }
+                    }
+                }
+
+                if (null !== hoveredNode)
+                {
+                    var node = nodes[hoveredNode]
+                    var centerX = node[1][0];
+                    var centerY = node[1][1];
+
+                    var radius = (hoveredNode in hubs) ? hubs[hoveredNode] : 4;
+
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, radius + 5, 0, 2 * Math.PI);
+                    ctx.strokeStyle = "magenta";
+                    ctx.stroke();
+
+                    ctx.font = "16px Tahoma";
+                    ctx.textAlign = "left"
+                    ctx.textBaseline = "center"
+
+                    var tooltipText = hoveredNode + ": " + node[0] + " // " + node[3];
+                    var measures = ctx.measureText(tooltipText)
+
+                    ctx.fillStyle = "#C3D9FF"
+                    ctx.fillRect(centerX + 20, centerY + 20, 30 + measures.width, 50);
+
+                    ctx.fillStyle = "#3F4C6B";
+                    ctx.fillText(tooltipText, centerX + 20 + 15, centerY + 20 + 25);
+                }
+
+                ctx.restore();
+
+                // List of routes
+                if (selectedRoute.length > 0)
+                {
+                    ctx.fillStyle = "#36393D"
+                    ctx.fillRect(canvasWidth - 300, 0, canvasWidth, canvasHeight); 
+
+                    ctx.fillStyle = "#6BBA70"
+                    ctx.fillRect(canvasWidth - 300, 0, 2, canvasHeight); 
+
+                    // TODO: don't calc it every frame
+                    var routeToText = []
+                    for(var i = 0; i < selectedRoute.length; ++i)
+                    {
+                        var nodeName = selectedRoute[i]
+                        var n = nodes[nodeName]
+                        if (n[0].length > 0)
+                        {
+                            routeToText.push([n[0] + " (" + nodeName + ")", prefixes[nodeName[0]][1]])
+                            routeToText.push(["⇣", "#C3D9FF"])
+                        }
+                    }
+                    routeToText.pop()
+
+                    var yRoute = 5
+                    ctx.font = "13px Tahoma";
+                    ctx.textAlign = "center"
+                    ctx.textBaseline = "top"
+                    for(var i in routeToText)
+                    {
+                        ctx.fillStyle = routeToText[i][1]
+                        ctx.fillText(routeToText[i][0], canvasWidth - 300/2, yRoute)
+                        yRoute += 15
+                    }
+                }
+
+                // Legend
+
+                var yPos = 10
+                ctx.font = "bold 15px Tahoma";
+                ctx.textAlign = "left"
+                ctx.textBaseline = "top"
+                ctx.fillStyle = "white"
+                ctx.fillText("Legend", 10, yPos);
+                ctx.font = "15px Tahoma";
+                yPos += 7
+                for(var i in prefixes)
+                {
+                    yPos += 17
+                    var prefix = prefixes[i]
+                    ctx.fillStyle = prefix[1]
+                    ctx.fillText(i + " = " + prefix[0], 10, yPos)
+                }
+            }
+
+            function updateCanvasDimensions() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                canvasWidth = canvas.width;
+                canvasHeight = canvas.height;
+                repaint();
+            };
+
+            function timeout()
+            {
+                repaint();
+                setTimeout(timeout, 30); // TODO dynamic rate
+            }
+
+            function parseCookie(cookie)
+            {
+                var tmp = cookie.split(";");
+                var res = {};
+                for(var i in tmp)
+                {
+                    var pair = tmp[i]
+                    p = pair.split("=");
+                    if (p && p.length === 2)
+                    {
+                        res[p[0].trim()] = p[1].trim()
+                    }
+                }
+                return res;
+            }
+
+            // TODO: var __siblings = {}
+            function __findSiblings(node, stopList)
+            {
+                var result = [];
+
+                for(var i in edges)
+                {
+                    var edge = edges[i]
+                    if (edge[0] === node && stopList.indexOf(edge[1]) === -1)
+                    {
+                        result.push(edge[1])
+                    }
+                    if (edge[1] === node && stopList.indexOf(edge[0]) === -1)
+                    {
+                        result.push(edge[0])
+                    }
+                }
+                
+                for(var i in transfers)
+                {
+                    var transfer = transfers[i]
+                    // TODO: 3-way transfers
+                    if (transfer[0] === node && stopList.indexOf(transfer[1]) === -1)
+                    {
+                        result.push(transfer[1])
+                    }
+                    if (transfer[1] === node && stopList.indexOf(transfer[0]) === -1)
+                    {
+                        result.push(transfer[0])
+                    }
+                }
+
+                if (node in hubsPads)
+                {
+                    var pads = hubsPads[node];
+                    for(var i in pads)
+                    {
+                        if (stopList.indexOf(pads[i]) === -1)
+                        {
+                            result.push(pads[i])
+                        }
+                    }
+                }
+
+                return result
+            }
+
+            function __routeCost(route)
+            {
+                // TODO: less transitions
+                // TODO: don't count hub pads
+                // TODO: take real length into account
+                return route.length
+            }
+
+            function findRoute(src, dst)
+            {
+                var begin = (new Date).getTime();
+                var result = __findRoute([src], dst, []);
+                var end = (new Date).getTime();
+
+                console.log("found best route from " + src + " to " + dst + " by " + ((end - begin)/1000) + " msec");
+                return result;
+            }
+
+            function __findRoute(currentRoute, dst, bestRoute)
+            {
+                var currentNode = currentRoute[currentRoute.length - 1]
+                var sublings = __findSiblings(currentNode, currentRoute);                
+
+                // sort nodes according to heuristics
+
+                var dstCoords = nodes[dst][1]
+                var heuristic = function(x) {
+                    var xCoords   = nodes[x][1]
+                    return Math.pow(xCoords[0] - dstCoords[0], 2) +
+                           Math.pow(xCoords[1] - dstCoords[1], 2);
+                };
+
+                sublings.sort(function(a, b)
+                    {
+                        if (heuristic(a) < heuristic(b)) return -1;
+                        if (heuristic(a) > heuristic(b)) return 1;
+                        return 0
+                    });
+
+                // try each closes node
+
+                var theBestRoute = bestRoute
+                for(var i in sublings)
+                {
+                    var subling = sublings[i]
+                    if (currentRoute.indexOf(subling) === -1)
+                    {
+                        var route = currentRoute.concat([subling])
+                        var routeCost = __routeCost(route)
+                        var bestCost = theBestRoute.length > 0 ? __routeCost(theBestRoute) // TODO: don't recalt cost all the time
+                                                               : null
+
+                        // continue search or current route is too costy?
+                        if (bestCost === null || bestCost > routeCost)
+                        {
+                            if (route[route.length - 1] === dst)
+                            {
+                                return route;
+                            }
+                            else
+                            {
+                                var result = __findRoute(route, dst, theBestRoute)
+                                if (result.length > 0)
+                                {
+                                    theBestRoute = result;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                return theBestRoute
+            }
+
+            function main()
+            {
+                // read cookies
+
+                var cookie = parseCookie(document.cookie)
+                if ("spon2007_xOffset" in cookie)
+                {
+                    xOffset = parseInt(cookie["spon2007_xOffset"])
+                }
+                if ("spon2007_yOffset" in cookie)
+                {
+                    yOffset = parseInt(cookie["spon2007_yOffset"])
+                }
+                if ("spon2007_mapScale" in cookie)
+                {
+                    mapScale = parseFloat(cookie["spon2007_mapScale"])
+                }
+
+                // chop nodes coordinates
+
+                var nodesBbox = Object.keys(nodes).reduce(
+                    function(acc, curVal)
+                    {
+                        var n = nodes[curVal]
+                        return [Math.min(acc[0], n[1][0]),
+                                Math.min(acc[1], n[1][1]),
+                                Math.max(acc[2], n[1][0]),
+                                Math.max(acc[3], n[1][1])]
+                    },
+                    [nodes["A00"][1][0], nodes["A00"][1][1], nodes["A00"][1][0], nodes["A00"][1][1]]);
+                var xFix = - nodesBbox[0] + 25;
+                var yFix = - nodesBbox[1] + 25;
+
+                for(var i in nodes)
+                {
+                    var node = nodes[i];
+                    node[1][0] += xFix;
+                    node[1][1] += yFix;
+                }
+
+                // prepare hub's terminals
+
+                for(var i in hubs)
+                {
+                    var hubRadius = hubs[i]
+                    var hubNode = nodes[i]
+
+                    // get endpoint for the hub
+                    var endpoints = []
+                    for(var j in edges)
+                    {
+                        var edge = edges[j]
+                        if (edge[0] === i || edge[1] === i)
+                        {
+                            endpoints.push(edge)
+                        }
+                    }
+
+                    // create terminals
+                    for(var k = 0; k < endpoints.length; ++k)
+                    {
+                        var newName = i + "." + k
+                        var complementaryNode = "???"
+
+                        var edge = endpoints[k]
+                        if (edge[0] === i)
+                        {
+                            edge[0] = newName
+                            complementaryNode = edge[1]
+                        }
+                        else if (edge[1] === i)
+                        {
+                            edge[1] = newName
+                            complementaryNode = edge[0]
+                        }
+
+                        var angle = (k / endpoints.length) * 2 * Math.PI;
+                        var newNode = ["",
+                                       [hubNode[1][0] + Math.cos(angle) * hubRadius,
+                                        hubNode[1][1] + Math.sin(angle) * hubRadius],
+                                       "",
+                                       i + "'s terminal from " + complementaryNode];
+                        
+                        nodes[newName] = newNode;
+
+                        if (i in hubsPads)
+                        {
+                            hubsPads[i].push(newName)
+                        }
+                        else
+                        {
+                            hubsPads[i] = [newName]
+                        }
+                        hubsPads[newName] = [i]
+                    }
+                }
+
+                // precalc 
+
+                for(var i in transfers)
+                {
+                    var transfer = transfers[i]
+
+                    var nodeA = nodes[transfer[0]]
+                    var nodeB = nodes[transfer[1]]
+                    var nodeC = transfer.length > 2 ? nodes[transfer[2]]
+                                                    : null
+
+                    var begX = nodeA[1][0];
+                    var begY = nodeA[1][1];
+                    var endX
+                    var endY
+                    if (nodeC !== null)
+                    {
+                        endX = (nodeB[1][0] + nodeC[1][0]) / 2
+                        endY = (nodeB[1][1] + nodeC[1][1]) / 2
+                    }
+                    else
+                    {
+                        endX = nodeB[1][0]
+                        endY = nodeB[1][1]                        
+                    }
+
+
+                    var magn = magnitude(begX, begY, endX, endY)
+                    var equation = getLineEquation(begX, begY, endX, endY);
+                    var extent = 10/magn
+
+                    var begin = equation(-extent)
+                    var end = equation(1 + extent)
+
+                    transferLines.push([begin, end])
+                }
+
+
+                // run first iteration
+
+                updateCanvasDimensions();
+                timeout()
+
+                // install listeners
+
+                window.addEventListener('resize',   updateCanvasDimensions, false);
+                window.addEventListener('keypress', procKeyPress, false);
+                if (canvas.addEventListener) {
+                    // IE9, Chrome, Safari, Opera
+                    canvas.addEventListener("mousewheel", procMouseWheel, false);
+                    // Firefox
+                    canvas.addEventListener("DOMMouseScroll", procMouseWheel, false);
+                }
+                else 
+                {
+                    // IE 6/7/8
+                    canvas.attachEvent("onmousewheel", procMouseWheel);
+                }
+            }
+
+            main();
+
+        </script> 
+    </body>
+</html>
