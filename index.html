@@ -24,6 +24,7 @@
         </canvas>
 
         <script>
+            var lastUpdate = new Date(2016, 6, 26)
             /*
                     N
                 NW     NE
@@ -39,13 +40,14 @@
                 "A03": ["Lanno-Condeura",                       [450, 1810],    "E",    "various portals to national subdivisions (Rail #2)"],
                 "A04": ["The Iron Farm",                        [655, 1080],    "E",    "public access (Rail #3)"],
                 "A05": ["Dobrograd",                            [670, 1210],    "E",    "(Rail #3)"],
-                "A06": ["Old Spawn Netherhub",                  [580, 1055],    "E",    "transfer station to Old Spawn Network (Rail #4)"],
+                "A06": ["Old Spawn Netherhub",                  [580, 1055],    "NE",   "transfer station to Old Spawn Network (Rail #4)"],
                 "A07": ["Big Shit Tower",                       [250, 700],     "E",    "only boat travel to mainland (Rail #5)"],
-                "A08": ["(transfer point)",                     [590, 1680],    "NE",   "no portal station"],
-                "A09": ["Austrian Walls",                       [1030, 1680],   "E",    "(Rail #6)"],
-                "A10": ["Old Witherwood",                       [590, 1830],    "SW",   "transfer station (Rail #6)"],
-               "A10'": ["",                                     [600, 1830],     "",   "transfer station (Rail #6)"],
-                "A11": ["Duchy of WitherWood",                  [810, 1805],    "E",    "(Rail #6)"],
+                "A25": ["(transfer point)",                     [590, 1680],    "NE",   "no portal station"],
+                "A27": ["Gowa Base",                            [590, 1740],    "E",    "(Rail #6) "],
+                "A26": ["Austrian Walls",                       [1030, 1680],   "E",    "(Rail #6)"],
+                "A28": ["Old Witherwood",                       [590, 1830],    "SW",   "transfer station (Rail #6)"],
+               "A28'": ["",                                     [600, 1830],     "",   "transfer station (Rail #6)"],
+                "A29": ["Duchy of WitherWood",                  [810, 1805],    "E",    "(Rail #6)"],
                 "A12": ["(transfer point)",                     [975, 1325],    "S",    "no portal station"],
                 "A13": ["Tersk Bank (Slavia Confederation)",    [975, 1260],    "SE",   "transfer station to NEAR Transports (Rail #8)"],
                 "A14": ["Snow Pines (Calisia)",                 [1170, 1280],   "E",    "transfer station to NEAR Transports (Rail #8)"],
@@ -59,10 +61,10 @@
                 "A22": ["Hochkiesel",                           [725, 1485],    "W",    "(Rail #10)"],
                 "A23": ["Nelson",                               [610, 1500],    "E",    "(Rail #11)"],
                 "A24": ["Pizza Plaza",                          [735, 1800],    "S",    "(Rail #12)"],
-                "A25": ["Novoblagomirsk",                       [767, 1555],    "E",    "no direct portal station; access to walkway (Rail #13)"],
-                "A26": ["Flower Farm",                          [820, 1230],    "E",    "(Rail #16)"],
-                "A27": ["Phiagrica",                            [1010, 830],    "NW",   "(Rail #17)"],
-                "A28": ["BellTower (Mercymnius)",               [600, 1090],    "E",    "(Rail #23)"],
+                "A09": ["Novoblagomirsk",                       [760, 1555],    "W",    "no direct portal station; access to walkway (Rail #13)"],
+                "A10": ["Flower Farm",                          [820, 1230],    "E",    "(Rail #16)"],
+                "A11": ["Phiagrica",                            [1010, 830],    "NW",   "(Rail #17)"],
+                "A08": ["BellTower (Mercymnius)",               [600, 1090],    "E",    "(Rail #23)"],
                 "E01": ["Dobrobakanistan",                      [1325, 1590],   "E",    ""],
                 "E02": ["AdamJensen's Place",                   [1500, 1610],   "E",    ""],
                "N17'": ["",                                     [1450, 1560],    "",   ""],
@@ -77,9 +79,11 @@
                 "H06": ["Badforest (Badfacia)",                 [890, 1020],    "E",    "transfer station to NEAR Transports"],
                 "H07": ["Midway Fortress",                      [1325, 640],    "N",    "no portal station"],
                 "H08": ["Nether Arena",                         [1390, 305],    "E",    "no portal station"],
-                "H09": ["(switch point)",                       [770, 1645],    "NE",   "no portal station"],
-                "H10": ["Walschor",                             [495, 1690],    "NE",   "transfer station to Alpha Spawn Network"],
-                "H11": ["Ostrow",                               [1220, 1610],   "W",    "industrial line only"],
+                "H09": ["Faryagrad",                            [770, 1555],    "NE",   "transfer station to Extension Tracks (Rail #0)"],
+                "H10": ["(switch point)",                       [770, 1645],    "NE",   "no portal station"],
+                "H11": ["Walschor",                             [495, 1690],    "NE",   "transfer station to Alpha Spawn Network"],
+                "H12": ["Oasis",                                [1030, 1645],   "N",    ""],
+                "H13": ["Ostrow",                               [1220, 1610],   "W",    "industrial line only"],
                 "N00": ["Utgard Station",                       [1125, 1000],   "C",    "portal to Midgard Municipality (Rail #0)"],
                 "N01": ["West Sorra",                           [1020, 1000],   "S",    "switch station"],
                 "N02": ["Badforest (Badfacia)",                 [890, 1000],    "N",    "transfer station to HDC Network"],
@@ -92,7 +96,7 @@
                 "N09": ["Anhud's Scrapyard",                    [240, 1280],    "W",    "transfer station to Extension Tracks"],
                 "N10": ["Tollan (Ēxcān Bastet)",                [330, 1600],    "W",    "(subject to unpredictable name changes)"],
                 "N11": ["Tersk Bank (Slavia Confederation)",    [980, 1250],    "N",    "transfer station to Alpha Spawn Network"],
-                "N12": ["Aebinsborg (Eyjan Hvíta)",             [1125, 1250],   "S",    "switch station"],
+                "N12": ["Aebinsborg (Eyjan Hvíta)",             [1125, 1250],   "NW",    "switch station"],
                 "N13": ["Snow Pines (Calisia)",                 [1175, 1250],   "N",    "transfer station to Alpha Spawn Network"],
                 "N14": ["Zen Pagoda",                           [1290, 1250],   "N",    ""],
                 "N15": ["Explorers' Gate 02",                   [1440, 1250],   "E",    "temporary designation for unsettled area"],
@@ -117,6 +121,8 @@
                 "N34": ["Phiagrica",                            [1020, 830],    "E",    "transfer station; access to Main Gate and Tree Gate"],
                 "N35": ["Sponville",                            [1020, 780],    "E",    ""],
                 "N36": ["Barriada",                             [1020, 680],    "E",    ""],
+                "N37": ["Yagira Falls",                         [1125, 1340],   "W",    "also access to Graenland portal (Rail #0)"],
+                "N38": ["Prystanak",                            [1050, 1550],   "N",    "(Rail #0)"],
                 "O00": ["Old Spawn Netherhub",                  [547,  1051],   "C",    ""],
                 "O01": ["Desert End Portal",                    [565, 875],     "W",    "two lines to same station, transfer station to Xpeh Lines, no access to surface"],
                "O01'": ["",                                     [580, 875],     "",     ""],
@@ -145,9 +151,10 @@
                 ["A01", "A02", "A"],
                 ["A02", "A03", "A"],
                 ["A04", "A05", "A"],
-                ["A10", "A08", "A"],
-                ["A08", "A09", "A"],
-                ["A11","A10'", "A", "corner"],
+                ["A27", "A25", "A"],
+                ["A25", "A26", "A"],
+                ["A27", "A28", "A"],
+                ["A29","A28'", "A", "corner"],
                 ["A12", "A13", "A"],
                 ["A12", "A14", "A"],
                 ["A14", "A15", "A"],
@@ -158,18 +165,18 @@
                 ["A21", "A20", "A"],
 
                 ["A00", "A12", "A"],
-                ["A00", "A25", "A"],
+                ["A00", "A09", "A"],
                 ["A00", "A24", "A", "corner"],
                 ["A00", "A22", "A"],
                 ["A00", "A23", "A"],
-                ["A08", "A00", "A", "corner"],
+                ["A25", "A00", "A", "corner"],
                 ["A01", "A00", "A", "corner"],
                 ["A07", "A00", "A", "corner"],
                 ["A06", "A00", "A", "corner"],
                 ["A00", "N07", "N", "corner"],
-                ["A28", "A00", "A"],
+                ["A08", "A00", "A"],
                 ["A00", "A05", "A"],
-                ["A00", "A27", "A", "corner"],
+                ["A00", "A11", "A", "corner"],
                 ["A00", "N11", "N", "corner"],
 
                 ["A18", "E01", "E"],
@@ -212,13 +219,17 @@
                 ["N18", "N19", "N"],
                 ["N19", "N20", "N", "corner"],
                 ["N12", "N06", "N"],
+                ["N12", "N37", "N"],
+                ["N37", "N38", "N", "corner"],
 
                 ["X02", "N10", "X", "corner"],
                 ["X02", "X03", "X", "corner"],
-                ["X03", "A10", "X", "corner"],
+                ["X03", "A28", "X", "corner"],
 
-                ["H11", "H09", "H", "corner"],
-                ["H09", "H10", "H", "corner"],
+                ["H13", "H12", "H", "corner"],
+                ["H12", "H10", "H", "corner"],
+                ["H10", "H11", "H", "corner"],
+                ["H10", "H09", "H"],
 
                 ["H03", "H02", "H"],
                 ["H00", "H06", "H", "corner"],
@@ -231,7 +242,7 @@
                 ["H02", "H00", "H"],
 
                 ["A20", "A00", "A", "corner"],
-                ["A26", "A00", "A", "corner"],
+                ["A10", "A00", "A", "corner"],
 
                 ["H02", "H04", "H", "corner"],
 
@@ -241,7 +252,7 @@
                 ["O12", "O11", "O", "corner"],
                 ["O06", "O07", "O", "corner"],
                 ["O08", "O09", "O", "corner"],
-                ["O06", "O04", "O"],
+                ["O06", "O00", "O", "corner"],
                 ["O03", "O05", "O"],
                 ["O04", "O03", "O", "corner"],
                 
@@ -249,14 +260,14 @@
                 ["O00", "O13", "O", "corner"],
                 ["O14", "O00", "O", "corner"],
                 ["O08", "O00", "O", "corner"],
-                ["O02", "O00", "O"],
+                ["O02", "O00", "O", "corner"],
                 ["O03", "O00", "O"],
                 ["O01", "O00", "O", "corner"],
                 ["O01'","A06", "O"],
               
                 ["O10'","O02'","X", "corner"],
                 ["X01", "O10'","X", "corner"],
-                ["O01", "O10", "A", "corner"],
+                ["O01", "O10", "X", "corner"],
                 //["O04", "A01'", "O"],
                 //["O10", "O01'", "O", "rectangle", yForRect-side],
             ];
@@ -267,22 +278,26 @@
                 ["N11", "A13"],
                 ["E03", "N09"],
                 ["N02", "H06"],
-                ["A02", "H10"],
+                ["A02", "H11"],
                 ["N17", "N17'"],
-                ["A10", "A10'"],
+                ["A28", "A28'"],
                 ["E04", "O14"],
                 ["O02", "O02'"],
                 ["X01", "X01'"],
                 ["O01", "O01'"],
-                ["N34", "A27"],
+                ["N34", "A11"],
                 ["O11", "O10", "O10'"],
                 ["A06", "O00.0"],
+                ["A09", "H09"],
             ];
-            var hubs = {"O00": 25, "A00": 45, "H02": 15, "H00": 25, "N00": 25}; // {"hubname": raduis}
+            
+            // {"hubname": raduis, ...}
+            var hubs = {"O00": 25, "A00": 45, "H02": 15, "H00": 25, "N00": 25}; 
+
             var prefixes = {"A": ["Alpha Spawn Network", "#b97a57"],
                             "E": ["Extension Tracks",    "#7f7f7f"],
                             "H": ["HDC Network",         "#3f48cc"],
-                            "N": ["NEAR Network",        "#22b14c"],
+                            "N": ["NEAR Transports",     "#22b14c"],
                             "O": ["Old Spawn Network",   "#ed1c24"],
                             "X": ["Xpeh Lines",          "#ff7f27"]};
 
@@ -749,7 +764,16 @@
                     ctx.fillStyle = prefix[1]
                     ctx.fillText(i + " = " + prefix[0], 10, yPos)
                 }
+
+                ctx.fillStyle = "white"
+                ctx.fillText("Last update: " + lastUpdate.getFullYear() + "-" +
+                                               monthes[lastUpdate.getMonth()] + "-" +
+                                               lastUpdate.getDate(),
+                             10,
+                             canvasHeight - 30)
             }
+
+            var monthes = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]
 
             function updateCanvasDimensions() {
                 canvas.width = window.innerWidth;
